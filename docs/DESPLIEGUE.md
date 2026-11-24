@@ -18,9 +18,11 @@ firebase login
 ## 3. Publicar
 
 ```bash
-npm install
+npm run setup      # instala la web y, aparte, las funciones
 npm run deploy
 ```
+
+> Consejo: no tengas el proyecto dentro de OneDrive. La sincronización bloquea ficheros de `node_modules` y `npm install` falla con `EPERM`. Mejor en una carpeta como `C:\dev\zumbo`.
 
 Publica las reglas de Firestore, las funciones (`europe-west1`) y la web. Al terminar, la web está en https://zumbo-a4359.web.app.
 
