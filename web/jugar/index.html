@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1b33">
+<meta name="description" content="Zumbo: un mundo nuevo cada día y Zum, un dron diminuto, escondido en él. Encuéntralo antes que nadie.">
+<meta property="og:title" content="Zumbo · ¿dónde está Zum?">
+<meta property="og:description" content="Haz zoom sobre un mundo infinito y encuentra a Zum. El mismo mapa para todos, ranking diario.">
+<title>Zumbo · ¿dónde está Zum?</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Unbounded:wght@500;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<canvas id="gl" class="full" aria-label="Mapa del día: vista de satélite con zoom"></canvas>
+<canvas id="fx" class="full" aria-hidden="true"></canvas>
+
+<header class="top">
+  <a class="g brand" id="brand" href="/" aria-label="Volver a la portada de Zumbo"></a>
+  <div class="sp"></div>
+  <div class="g clock" id="clock">0:00</div>
+  <button class="g tbtn" id="rankBtn" type="button">Ranking</button>
+</header>
+
+<aside class="g clue" id="clue">
+  <div class="ch"><span id="clueT">Postal del día</span><span class="tabs" id="tabs"></span></div>
+  <button class="pc" id="pcBtn" type="button" aria-label="Ampliar postal"><canvas id="pc" width="480" height="300"></canvas><span id="pcLab">45 km</span></button>
+  <div class="tgt" id="tgt"></div><div class="zone" id="zone"></div>
+  <button class="btn2" id="clue2" type="button">Postal más cerca · +20 s</button>
+</aside>
+
+<div class="ctrl">
+  <button class="g" id="zin" type="button" aria-label="Acercar">+</button>
+  <button class="g" id="zout" type="button" aria-label="Alejar">−</button>
+  <button class="g" id="home" type="button" aria-label="Ver el mundo entero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17"/></svg></button>
+</div>
+
+<div class="g hud" id="hud"><div class="sbar"><i id="sbarL"></i><span id="sbarT"></span></div><span class="c" id="coord"></span><span class="m" id="alt"></span></div>
+<div class="sponsor g" id="sponsor" hidden></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="ov" id="ov" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="load" id="load"><div><span id="loadLogo"></span><span id="loadT">Generando el mundo de hoy…</span></div></div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

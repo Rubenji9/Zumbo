@@ -34,6 +34,7 @@ async function boot() {
   const S = { phase: 'intro', startedAt: 0, fails: 0, hints: 0, result: null, caught: new Map(), alias: '' };
   if (import.meta.env.DEV) window.__zumbo.S = S;
   try { S.alias = localStorage.getItem('zumbo-alias') || ''; } catch {}
+  if (server.alias && !S.alias) S.alias = server.alias;
   let board = [];
   const total = () => S.result ? S.result.ms : S.phase === 'play' ? Date.now() - S.startedAt + S.fails * PENALTY_DECOY_MS + S.hints * PENALTY_HINT_MS : 0;
   server.subscribeBoard((rows) => { board = rows; renderBoard(rows, { mode: server.mode }); });

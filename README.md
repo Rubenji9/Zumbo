@@ -24,7 +24,7 @@ npm install
 npm run dev
 ```
 
-Abre la dirección que aparece (normalmente http://localhost:5173). En `npm run dev` todo funciona en el navegador, con el ranking guardado solo en ese dispositivo.
+Abre la dirección que aparece (normalmente http://localhost:5173 para la portada y http://localhost:5173/jugar/ para el juego). En `npm run dev` todo funciona en el navegador, con el ranking guardado solo en ese dispositivo; las cuentas solo funcionan en la versión publicada.
 
 | Comando | Qué hace |
 |---|---|
@@ -40,7 +40,10 @@ Para ver un mundo patrocinado de prueba: `http://localhost:5173/?tema=ejemplo-fe
 
 ```
 shared/      El mundo: semilla diaria, ruido, relieve, drones, reglas y temas. Lo usan web y servidor.
-web/         La app (Vite + JavaScript): motor WebGL2, cámara, interfaz y servicios.
+web/         La web (Vite + JavaScript):
+               index.html        portada (animación de entrada, cuentas, ranking)
+               jugar/index.html  el juego
+               src/landing/      código de la portada · src/engine/ motor WebGL2 · src/services/ Firebase y cuentas
 functions/   Firebase Cloud Functions: árbitro de cada partida y ranking.
 docs/        Diseño, arquitectura, marca, patrocinios, despliegue y hoja de ruta.
 prototipos/  Las versiones de un solo fichero de las que sale el proyecto (Tico y Otea).

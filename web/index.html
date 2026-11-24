@@ -3,45 +3,218 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1b33">
-<meta name="description" content="Zumbo: un mundo nuevo cada día y Zum, un dron diminuto, escondido en él. Encuéntralo antes que nadie.">
-<meta property="og:title" content="Zumbo · ¿dónde está Zum?">
-<meta property="og:description" content="Haz zoom sobre un mundo infinito y encuentra a Zum. El mismo mapa para todos, ranking diario.">
-<title>Zumbo · ¿dónde está Zum?</title>
+<meta name="theme-color" content="#0b0a14">
+<title>Zumbo · ¿Dónde está Zum?</title>
+<meta name="description" content="Zumbo es un juego diario: un mundo nuevo cada día, con zoom desde 400 km hasta 1 cm, y Zum, un dron diminuto, escondido en él. El mismo para todos.">
+<meta property="og:title" content="Zumbo · ¿Dónde está Zum?">
+<meta property="og:description" content="Un mundo nuevo cada día. Un dron diminuto escondido en él. El mismo para todos. ¿Lo encuentras antes que nadie?">
+<meta property="og:type" content="website">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Unbounded:wght@500;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Unbounded:wght@500;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-<canvas id="gl" class="full" aria-label="Mapa del día: vista de satélite con zoom"></canvas>
-<canvas id="fx" class="full" aria-hidden="true"></canvas>
+<body class="intro-on">
 
-<header class="top">
-  <div class="g brand" id="brand"></div>
-  <div class="sp"></div>
-  <div class="g clock" id="clock">0:00</div>
-  <button class="g tbtn" id="rankBtn" type="button">Ranking</button>
-</header>
-
-<aside class="g clue" id="clue">
-  <div class="ch"><span id="clueT">Postal del día</span><span class="tabs" id="tabs"></span></div>
-  <button class="pc" id="pcBtn" type="button" aria-label="Ampliar postal"><canvas id="pc" width="480" height="300"></canvas><span id="pcLab">45 km</span></button>
-  <div class="tgt" id="tgt"></div><div class="zone" id="zone"></div>
-  <button class="btn2" id="clue2" type="button">Postal más cerca · +20 s</button>
-</aside>
-
-<div class="ctrl">
-  <button class="g" id="zin" type="button" aria-label="Acercar">+</button>
-  <button class="g" id="zout" type="button" aria-label="Alejar">−</button>
-  <button class="g" id="home" type="button" aria-label="Ver el mundo entero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17"/></svg></button>
+<!-- Animación de entrada: Zum llega, parpadea y nos metemos en su ojo -->
+<div id="intro" class="intro" aria-hidden="true">
+  <div class="intro-sky"></div>
+  <div class="intro-stage">
+    <div class="intro-shadow"></div>
+    <div class="intro-drone" id="introDrone"></div>
+  </div>
+  <div class="intro-word" id="introWord"><span>z</span><span>u</span><span>m</span><span>b</span><span>o</span></div>
+  <div class="intro-load"><i id="introBar"></i></div>
+  <button class="intro-skip" id="introSkip" type="button">Saltar</button>
 </div>
 
-<div class="g hud" id="hud"><div class="sbar"><i id="sbarL"></i><span id="sbarT"></span></div><span class="c" id="coord"></span><span class="m" id="alt"></span></div>
-<div class="sponsor g" id="sponsor" hidden></div>
-<div class="toast" id="toast" role="status"></div>
-<div class="ov" id="ov" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
-<div class="load" id="load"><div><span id="loadLogo"></span><span id="loadT">Generando el mundo de hoy…</span></div></div>
-<script type="module" src="/src/main.js"></script>
+<header class="nav" id="nav">
+  <a class="nav-brand" href="#top" aria-label="Zumbo, inicio"><span id="navLogo"></span><b>zumbo</b></a>
+  <nav class="nav-links" aria-label="Secciones">
+    <a href="#como">Cómo se juega</a>
+    <a href="#zoom">Zoom infinito</a>
+    <a href="#zum">Zum</a>
+    <a href="#ranking">Ranking</a>
+    <a href="#marcas">Marcas</a>
+  </nav>
+  <div class="nav-cta">
+    <button class="btn ghost" id="navAccount" type="button">Crear cuenta</button>
+    <a class="btn pink" href="/jugar/">Jugar</a>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="heroTitle">
+    <canvas id="heroWorld" class="hero-world" aria-hidden="true"></canvas>
+    <div class="hero-shade"></div>
+    <div class="hero-in">
+      <div class="pill" id="heroPill"><i class="dot"></i><span id="heroDay">Mundo de hoy</span><span class="sep"></span><span>Nuevo en <b id="heroCountdown">--:--:--</b></span></div>
+      <h1 id="heroTitle" class="hero-title"><span class="line"><span>¿Dónde</span></span> <span class="line"><span>está <em>Zum</em>?</span></span></h1>
+      <p class="hero-sub">Cada día, un mundo nuevo. Un dron diminuto escondido en él. El mismo mapa para todos y un solo intento. ¿Lo encuentras antes que nadie?</p>
+      <div class="hero-cta">
+        <a class="btn pink big" href="/jugar/">Jugar el mundo de hoy</a>
+        <button class="btn glass big" id="heroAccount" type="button">Crear cuenta gratis</button>
+      </div>
+      <ul class="hero-facts">
+        <li><b>400 km</b> de mundo</li>
+        <li><b>1 cm</b> de zoom máximo</li>
+        <li><b>1</b> intento al día</li>
+      </ul>
+    </div>
+    <div class="hero-zum" aria-hidden="true"><div class="hz-shadow"></div><div class="hz-drone" id="heroDrone"></div></div>
+    <a class="scroll-cue" href="#como" aria-label="Ver cómo se juega"><span></span></a>
+  </section>
+
+  <!-- CÓMO SE JUEGA -->
+  <section class="sec how" id="como" aria-labelledby="howTitle">
+    <div class="sec-head">
+      <p class="kicker">Cómo se juega</p>
+      <h2 id="howTitle">Tres pasos. Un dron. Todo el mundo buscando a la vez.</h2>
+    </div>
+    <div class="steps">
+      <article class="step reveal">
+        <div class="step-art art-postal"><canvas id="howPostal" width="480" height="300" aria-label="Ejemplo de postal del día"></canvas><span class="tag">45 km</span></div>
+        <span class="num">1</span>
+        <h3>Mira la postal</h3>
+        <p>Te damos una vista de 45 km de la zona donde se esconde Zum. Costa, lagos, bosques, pueblos: memorízala.</p>
+      </article>
+      <article class="step reveal">
+        <div class="step-art art-zoom" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b></div>
+        <span class="num">2</span>
+        <h3>Encuentra el sitio y acércate</h3>
+        <p>Localiza esa zona en un mundo de 400 km y haz zoom. Islas, pueblos, calles, tejados… hasta ver cada árbol.</p>
+      </article>
+      <article class="step reveal">
+        <div class="step-art art-catch" id="howCatch" aria-hidden="true"></div>
+        <span class="num">3</span>
+        <h3>Pilla a Zum</h3>
+        <p>Hay drones casi iguales por todas partes. Toca al bueno. Cada impostor suma 5 segundos a tu tiempo.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ZOOM INFINITO (scroll) -->
+  <section class="zoomscroll" id="zoom" aria-labelledby="zoomTitle">
+    <div class="zs-sticky">
+      <canvas id="zoomWorld" class="zs-world" aria-hidden="true"></canvas>
+      <div class="zs-shade"></div>
+      <div class="zs-hud">
+        <p class="kicker">Zoom infinito</p>
+        <h2 id="zoomTitle">De una isla entera<br>a un dron de 3 metros.</h2>
+        <div class="zs-meter"><span>Altitud</span><b id="zsAlt">400 km</b></div>
+        <ol class="zs-stages" id="zsStages">
+          <li class="on">Una isla entera</li>
+          <li>Montañas, lagos y costa</li>
+          <li>Pueblos y carreteras</li>
+          <li>Calles, tejados y árboles</li>
+          <li>Zum</li>
+        </ol>
+      </div>
+      <div class="zs-bar"><i id="zsBar"></i></div>
+    </div>
+  </section>
+
+  <!-- ZUM -->
+  <section class="sec zum" id="zum" aria-labelledby="zumTitle">
+    <div class="zum-grid">
+      <div class="zum-hero reveal">
+        <div class="zum-ring"></div>
+        <div class="zum-big" id="zumBig"></div>
+      </div>
+      <div class="zum-copy">
+        <p class="kicker">El personaje</p>
+        <h2 id="zumTitle">Este es Zum.</h2>
+        <p class="lead">Un dron pequeño y curioso con un solo ojo. Cada día se esconde en un sitio nuevo del mundo y espera a que alguien le encuentre.</p>
+        <ul class="traits">
+          <li><i style="background:#ff3d8b"></i>Cuerpo rosa</li>
+          <li><i style="background:#14121f"></i>Cuatro hélices</li>
+          <li><i style="background:#fff;box-shadow:inset 0 0 0 3px #14121f"></i>Un ojo con pupila rosa</li>
+          <li><i style="background:#ffd23f"></i>Luz amarilla</li>
+        </ul>
+      </div>
+    </div>
+    <div class="impostors">
+      <h3>Y estos son sus impostores <span>Toca uno para descubrir qué le falla</span></h3>
+      <div class="imp-row" id="impRow"></div>
+    </div>
+  </section>
+
+  <!-- RANKING -->
+  <section class="sec rank" id="ranking" aria-labelledby="rankTitle">
+    <div class="rank-grid">
+      <div>
+        <p class="kicker">Ranking de hoy</p>
+        <h2 id="rankTitle">El mismo mundo para todos. Gana el más rápido.</h2>
+        <p class="lead">A medianoche (hora de Madrid) aparece un mundo nuevo y el ranking empieza de cero. Con cuenta, guardas tu nombre, tus partidas y tus rachas en cualquier dispositivo.</p>
+        <div class="hero-cta"><a class="btn pink" href="/jugar/">Jugar ahora</a><button class="btn ghost-dark" id="rankAccount" type="button">Crear cuenta</button></div>
+      </div>
+      <div class="board-card">
+        <div class="board-top"><b id="rankDay">Mundo de hoy</b><span id="rankCount"></span></div>
+        <ol class="board" id="rankList"></ol>
+        <p class="board-note" id="rankNote">Cargando ranking…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARCAS -->
+  <section class="sec brands" id="marcas" aria-labelledby="brandsTitle">
+    <div class="sec-head">
+      <p class="kicker">Para marcas</p>
+      <h2 id="brandsTitle">Minutos de atención real. Sobre tu marca.</h2>
+      <p class="lead">Quien juega a Zumbo pasa varios minutos mirando cada rincón del mapa. Un mundo patrocinado convierte esa atención en una experiencia con tus colores, que la gente comparte.</p>
+    </div>
+    <div class="formats">
+      <article class="fmt reveal"><span class="fmt-ico" aria-hidden="true">01</span><h3>Mundo del día</h3><p>Un día del calendario con un mundo hecho para tu marca: paisaje, colores y tu nombre en pantalla.</p></article>
+      <article class="fmt reveal"><span class="fmt-ico" aria-hidden="true">02</span><h3>Zum de marca</h3><p>Zum se viste con tus colores. Todo el mundo buscando tu dron durante un día entero.</p></article>
+      <article class="fmt reveal"><span class="fmt-ico" aria-hidden="true">03</span><h3>Mundo privado</h3><p>Para eventos, ferias o tu equipo: un mundo propio con su ranking, en pantalla grande y en el móvil.</p></article>
+    </div>
+    <p class="brands-mail">¿Hablamos? Escríbenos a <a href="mailto:hola@zumbo.es">hola@zumbo.es</a></p>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="final" aria-labelledby="finalTitle">
+    <div class="final-drone" id="finalDrone" aria-hidden="true"></div>
+    <h2 id="finalTitle">Hoy Zum está escondido.<br>Mañana, en otro sitio.</h2>
+    <div class="hero-cta center"><a class="btn pink big" href="/jugar/">Buscar a Zum</a><button class="btn glass big" id="finalAccount" type="button">Crear cuenta</button></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot-brand"><span id="footLogo"></span><b>zumbo</b></div>
+  <p>Un mundo nuevo cada día · Hecho en España</p>
+  <nav aria-label="Pie"><a href="/jugar/">Jugar</a><a href="#marcas">Marcas</a><a href="mailto:hola@zumbo.es">Contacto</a></nav>
+</footer>
+
+<!-- Cuenta -->
+<div class="modal" id="authModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="modal-x" id="authClose" type="button" aria-label="Cerrar">×</button>
+    <div class="auth-head"><span id="authLogo"></span><div><h2 id="authTitle">Crea tu cuenta</h2><p>Guarda tu nombre en el ranking, tus partidas y tus rachas.</p></div></div>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tabUp" class="on" aria-selected="true">Crear cuenta</button>
+      <button type="button" role="tab" id="tabIn" aria-selected="false">Entrar</button>
+    </div>
+    <button class="btn google" id="authGoogle" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.3-.4-3.5z"/></svg>Continuar con Google</button>
+    <div class="or"><span>o con tu email</span></div>
+    <form id="authForm" novalidate>
+      <div class="field" id="fAlias"><label for="authAlias">Nombre en el ranking</label><input id="authAlias" name="alias" maxlength="18" autocomplete="nickname" placeholder="Cómo te verán los demás"></div>
+      <div class="field"><label for="authEmail">Email</label><input id="authEmail" name="email" type="email" autocomplete="email" required placeholder="tu@email.com"></div>
+      <div class="field"><label for="authPass">Contraseña</label><input id="authPass" name="password" type="password" autocomplete="new-password" minlength="6" required placeholder="Mínimo 6 caracteres"></div>
+      <p class="form-msg" id="authMsg" role="alert"></p>
+      <button class="btn pink full" id="authSubmit" type="submit">Crear cuenta</button>
+      <button class="link" id="authForgot" type="button" hidden>He olvidado mi contraseña</button>
+    </form>
+    <div class="auth-done" id="authDone" hidden>
+      <div class="done-drone" id="doneDrone"></div>
+      <h2>¡Hola, <span id="doneName"></span>!</h2>
+      <p>Tu cuenta está lista. Ya puedes buscar a Zum y entrar en el ranking con tu nombre.</p>
+      <a class="btn pink full" href="/jugar/">Jugar el mundo de hoy</a>
+      <button class="link" id="authOut" type="button">Cerrar sesión</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/src/landing/main.js"></script>
 </body>
 </html>

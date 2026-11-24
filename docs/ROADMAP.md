@@ -4,6 +4,7 @@
 - [x] Motor de mundo satélite con zoom de 400 km a 1 cm.
 - [x] Juego diario con postales, impostores y penalizaciones.
 - [x] Marca Zumbo y personaje Zum (dron con un ojo).
+- [x] Portada con animación de entrada, zoom con scroll y cuentas (email y Google).
 - [x] Ranking diario con validación en servidor (Firebase).
 - [x] Temas para mundos patrocinados.
 - [ ] Desplegar en Firebase (zumbo-a4359) y conectar zumbo.es.

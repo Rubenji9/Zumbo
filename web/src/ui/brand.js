@@ -28,3 +28,20 @@ function shade(hex, a) {
 }
 
 export const logoSVG = (t) => eyeSVG(t.pupil);
+
+/** Zum con las hélices girando (para la portada y la animación de entrada). */
+export function droneLiveSVG({ body = '#ff3d8b', pupil = '#ff3d8b', led = '#ffd23f', id = 'zl' } = {}) {
+  const dark = shade(body, -0.32);
+  const pts = [45, 135, 225, 315].map((a) => [100 + 62 * Math.cos((a * Math.PI) / 180), 100 + 62 * Math.sin((a * Math.PI) / 180)]);
+  let s = '';
+  for (const [x, y] of pts) s += `<line x1="100" y1="100" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${dark}" stroke-width="14" stroke-linecap="round"/>`;
+  pts.forEach(([x, y], i) => {
+    s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="31" fill="rgba(220,226,235,.22)" stroke="${INK}" stroke-width="2.5"/>`;
+    s += `<g class="rotor${i % 2 ? ' rev' : ''}" style="transform-origin:${x.toFixed(1)}px ${y.toFixed(1)}px"><rect x="${(x - 28).toFixed(1)}" y="${(y - 3.5).toFixed(1)}" width="56" height="7" rx="3.5" fill="${INK}" opacity=".75"/><rect x="${(x - 3.5).toFixed(1)}" y="${(y - 28).toFixed(1)}" width="7" height="56" rx="3.5" fill="${INK}" opacity=".35"/></g>`;
+    s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="${dark}" stroke="${INK}" stroke-width="2.5"/>`;
+  });
+  s += `<rect x="58" y="58" width="84" height="84" rx="30" fill="${body}" stroke="${INK}" stroke-width="3"/><path d="M68 80Q70 66 86 64" stroke="#fff" stroke-opacity=".55" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+  s += `<circle class="led" cx="122" cy="132" r="4.5" fill="${led}" stroke="${INK}" stroke-width="1.5"/>`;
+  s += `<g class="eye"><circle cx="100" cy="100" r="26" fill="#fff" stroke="${INK}" stroke-width="3"/><g class="iris"><circle cx="100" cy="100" r="17" fill="${INK}"/><circle cx="100" cy="100" r="11" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2"/><circle cx="102" cy="102" r="6" fill="${pupil}"/><circle cx="94" cy="93" r="3.5" fill="#fff"/></g><rect class="lid" x="72" y="72" width="56" height="56" fill="${body}" transform="scale(1 0)" style="transform-origin:100px 74px"/></g>`;
+  return `<svg viewBox="0 0 200 200" id="${id}" aria-hidden="true">${s}</svg>`;
+}

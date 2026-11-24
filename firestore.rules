@@ -11,6 +11,14 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    // Perfiles: cada jugador con cuenta lee y escribe solo el suyo.
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['alias', 'updatedAt'])
+        && request.resource.data.alias is string
+        && request.resource.data.alias.size() <= 18;
+    }
     // Partidas: cada jugador puede leer la suya; nadie escribe desde el cliente.
     match /runs/{runId} {
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
