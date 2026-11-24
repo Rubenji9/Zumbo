@@ -20,11 +20,18 @@ export async function firebaseCore() {
   return core;
 }
 
-/** Para jugar: usa la cuenta si la hay; si no, una sesión anónima. */
+/** ¿Hay una cuenta de verdad (no anónima) con la sesión abierta? */
+export async function hasAccount() {
+  const c = await firebaseCore();
+  return !!c.auth.currentUser && !c.auth.currentUser.isAnonymous;
+}
+
+/** Para jugar hace falta cuenta. */
 export async function initFirebase() {
   const c = await firebaseCore();
-  if (!c.auth.currentUser) await c.authMod.signInAnonymously(c.auth);
-  return { ...c, uid: c.auth.currentUser.uid, user: c.auth.currentUser };
+  const u = c.auth.currentUser;
+  if (!u || u.isAnonymous) { const e = new Error('Hace falta una cuenta para jugar'); e.code = 'need-account'; throw e; }
+  return { ...c, uid: u.uid, user: u };
 }
 
 /** Tema programado para un día (colección "schedule"), o "default". */

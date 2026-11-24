@@ -21,6 +21,7 @@ async function worldFor(iso) {
 
 function check(req) {
   if (!req.auth) throw new HttpsError('unauthenticated', 'Inicia sesión');
+  if (req.auth.token?.firebase?.sign_in_provider === 'anonymous') throw new HttpsError('permission-denied', 'Hace falta una cuenta para jugar');
   const iso = String(req.data?.iso || '');
   // Solo se puede jugar el mundo de hoy (con un margen por si el reloj cambia a medianoche).
   const today = gameDay(), ayer = gameDay(new Date(Date.now() - 10 * 60 * 1000));

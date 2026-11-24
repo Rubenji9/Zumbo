@@ -245,9 +245,10 @@ function showForm() {
   $('#authForm').hidden = false; document.querySelector('.tabs').hidden = false; $('#authGoogle').hidden = false; document.querySelector('.or').hidden = false;
   document.querySelector('.auth-head').hidden = false; $('#authDone').hidden = true;
 }
-function openAuth(m = 'up') {
+function openAuth(m = 'up', forPlay = false) {
   lastFocus = document.activeElement;
   modal.hidden = false;
+  document.querySelector('.auth-head p').textContent = forPlay ? 'Para jugar necesitas una cuenta. Es gratis y tardas 20 segundos.' : 'Guarda tu nombre en el ranking, tus partidas y tus rachas.';
   if (account) showDone(); else { showForm(); setMode(m); }
   if (!accountsAvailable()) msg('Las cuentas funcionan en la versión publicada de Zumbo.');
   setTimeout(() => (account ? $('#authDone a') : $('#authGoogle')).focus(), 30);
@@ -283,11 +284,23 @@ $('#authForgot').onclick = () => {
 };
 $('#authOut').onclick = () => busy($('#authOut'), async () => { await signOut(); showForm(); setMode('in'); });
 onAccount((a) => {
+  const fresh = a && !account;
   account = a;
+  if (fresh && wantsPlay) { location.href = '/jugar/'; return; }
   const b = $('#navAccount');
   b.textContent = a ? 'Hola, ' + a.name : 'Crear cuenta';
   if (a && !modal.hidden) showDone();
 }).catch(() => {});
 
+/* ---------------- jugar exige cuenta ---------------- */
+let wantsPlay = false;
+document.querySelectorAll('a[href="/jugar/"]').forEach((a) => a.addEventListener('click', (e) => {
+  if (!accountsAvailable() || account) return; // en local se juega sin cuenta
+  e.preventDefault(); wantsPlay = true; openAuth('up', true);
+}));
+const params = new URLSearchParams(location.search);
+if (params.get('cuenta')) { wantsPlay = params.get('cuenta') === 'jugar'; history.replaceState(null, '', location.pathname); try { sessionStorage.setItem('zumbo-intro', '1'); } catch {} }
+
 /* ---------------- arranque ---------------- */
 runIntro();
+if (wantsPlay) setTimeout(() => openAuth('up', true), 400);

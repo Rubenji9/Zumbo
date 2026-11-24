@@ -13,7 +13,7 @@ export async function resolveThemeId(iso) {
 export async function createServer(world) {
   if (BACKEND === 'firebase' && !new URLSearchParams(location.search).get('tema')) {
     try { const { createFirebaseServer } = await import('./firebase.js'); return await createFirebaseServer(world); }
-    catch (e) { console.warn('Firebase no disponible, modo local', e); }
+    catch (e) { if (e.code === 'need-account') throw e; console.warn('Firebase no disponible, modo local', e); }
   }
   return createLocalServer(world);
 }

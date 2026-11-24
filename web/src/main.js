@@ -2,7 +2,7 @@ import './styles.css';
 import { createWorld, getTheme, gameDay, secondsToNextWorld, PENALTY_DECOY_MS, PENALTY_HINT_MS, MAX_HINTS, WORLD_METERS as WM, droneAt, judgeTap } from '@zumbo/shared';
 import { createRenderer } from './engine/renderer.js';
 import { createCamera, bindInput } from './engine/camera.js';
-import { resolveThemeId, createServer } from './services/index.js';
+import { resolveThemeId, createServer, BACKEND } from './services/index.js';
 import { $, toast, fmtTime, fmtMeters, niceScale, fmtLatLon } from './ui/dom.js';
 import { droneSVG, logoSVG } from './ui/brand.js';
 import { makePostcard, PW } from './ui/postcards.js';
@@ -14,6 +14,11 @@ const dateLabel = new Date().toLocaleDateString('es-ES', { day: 'numeric', month
 boot().catch((e) => { console.error(e); $('#loadT').textContent = e.message === 'webgl2' ? 'Tu navegador no tiene WebGL2. Prueba con Chrome, Edge, Safari o Firefox actualizados.' : 'No se pudo preparar el mapa en este dispositivo.'; });
 
 async function boot() {
+  // En la versión publicada hace falta cuenta: si no la hay, a la portada a crearla.
+  if (BACKEND === 'firebase' && !new URLSearchParams(location.search).get('tema')) {
+    const { hasAccount } = await import('./services/firebase.js');
+    if (!(await hasAccount())) { location.replace('/?cuenta=jugar'); return; }
+  }
   const theme = getTheme(await resolveThemeId(iso).catch(() => 'default'));
   const world = createWorld(iso, theme);
   const T = theme.target;
