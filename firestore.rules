@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Ranking del día: lectura pública; solo lo escriben las funciones.
+    match /leaderboards/{day}/entries/{uid} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Calendario de mundos patrocinados: lectura pública; se edita desde la consola.
+    match /schedule/{day} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Partidas: cada jugador puede leer la suya; nadie escribe desde el cliente.
+    match /runs/{runId} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "otea",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Otea: un mundo nuevo cada día. Juego diario de búsqueda sobre un mapa de satélite procedural con zoom infinito.",
+  "type": "module",
+  "workspaces": ["shared", "web", "functions"],
+  "scripts": {
+    "dev": "npm run dev --workspace web",
+    "build": "npm run build --workspace web && npm run build --workspace functions",
+    "preview": "npm run preview --workspace web",
+    "test": "npm test --workspace shared",
+    "emulators": "npm run build --workspace functions && firebase emulators:start",
+    "deploy": "npm run build && firebase deploy"
+  },
+  "engines": { "node": ">=20" }
+}

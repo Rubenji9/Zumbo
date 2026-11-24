@@ -1,0 +1,15 @@
+node_modules/
+web/dist/
+functions/dist/
+.env
+.env.local
+web/.env
+web/.env.local
+.firebaserc
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*.log
+.DS_Store
+Thumbs.db

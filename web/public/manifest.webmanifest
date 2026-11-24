@@ -1,0 +1,10 @@
+{
+  "name": "Otea · un mundo nuevo cada día",
+  "short_name": "Otea",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1b33",
+  "theme_color": "#0b1b33",
+  "lang": "es",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
