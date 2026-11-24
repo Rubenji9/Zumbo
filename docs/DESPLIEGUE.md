@@ -1,37 +1,41 @@
 # Despliegue en Firebase
 
-## 1. Proyecto
+Proyecto: **zumbo-a4359** (ya configurado en `.firebaserc` y `web/.env.production`).
 
-1. Crea un proyecto en https://console.firebase.google.com (plan **Blaze**, necesario para Cloud Functions; el uso inicial suele quedar dentro de la capa gratuita).
-2. Activa **Authentication → Método de acceso → Anónimo**.
-3. Crea **Firestore** en `europe-west1`.
-4. Registra una **app web** y copia su configuración.
+## 1. Consola de Firebase (una sola vez)
 
-## 2. Configuración local
+1. Plan **Blaze** (necesario para Cloud Functions). Pon un presupuesto con alerta de 5–10 €.
+2. **Firestore** creado en `europe-west1`, modo producción.
+3. **Authentication → Método de acceso → Anónimo**: activado.
+
+## 2. Herramientas (una sola vez)
 
 ```bash
 npm install -g firebase-tools
 firebase login
-cp .firebaserc.example .firebaserc     # pon el id de tu proyecto
-cp web/.env.example web/.env           # VITE_BACKEND=firebase y los datos de la app
 ```
 
-## 3. Probar con emuladores
+## 3. Publicar
 
 ```bash
-# en web/.env: VITE_FIREBASE_EMULATORS=true
-npm run emulators      # en una terminal
-npm run dev            # en otra
-```
-
-## 4. Publicar
-
-```bash
+npm install
 npm run deploy
 ```
 
-Publica las reglas de Firestore, las funciones (`europe-west1`) y la web en Firebase Hosting.
+Publica las reglas de Firestore, las funciones (`europe-west1`) y la web. Al terminar, la web está en https://zumbo-a4359.web.app.
 
-## 5. Dominio
+## 4. Probar en local con emuladores (opcional)
 
-Hosting → Añadir dominio personalizado, y sigue los pasos de DNS.
+```bash
+cp web/.env.example web/.env     # y descomenta el bloque de emuladores
+npm run emulators                 # en una terminal
+npm run dev                       # en otra
+```
+
+## 5. Dominio zumbo.es
+
+Firebase → Hosting → **Añadir dominio personalizado** → `zumbo.es` (y `www.zumbo.es`). Te dará unos registros DNS (A y TXT) que hay que añadir en el panel de tu registrador. Tarda de minutos a unas horas.
+
+## 6. Mundos patrocinados
+
+Firestore → colección `schedule` → documento con la fecha (`2026-12-24`) → campo `themeId` con el id del tema. Ver `docs/PATROCINIOS.md`.

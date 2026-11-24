@@ -1,8 +1,8 @@
 {
-  "name": "otea",
+  "name": "zumbo",
   "version": "0.1.0",
   "private": true,
-  "description": "Otea: un mundo nuevo cada día. Juego diario de búsqueda sobre un mapa de satélite procedural con zoom infinito.",
+  "description": "Zumbo: un mundo nuevo cada día y Zum, un dron diminuto, escondido en él. Juego diario de búsqueda con zoom infinito.",
   "type": "module",
   "workspaces": ["shared", "web", "functions"],
   "scripts": {

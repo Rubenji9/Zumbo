@@ -2,13 +2,13 @@
 
 ## Qué se vende
 
-Un día del calendario con un mundo hecho para una marca: sus colores en el globo objetivo, un tinte propio del paisaje y su nombre en pantalla («Mundo patrocinado por…»). El jugador pasa varios minutos mirando el mapa con atención, que es justo lo que interesa a un anunciante.
+Un día del calendario con un mundo hecho para una marca: Zum con los colores de la marca, un tinte propio del paisaje y su nombre en pantalla («Mundo patrocinado por…»). El jugador pasa varios minutos mirando el mapa con atención, que es justo lo que interesa a un anunciante.
 
 Formatos posibles:
 
 - **Mundo del día**: una fecha concreta.
 - **Semana temática**: varios días seguidos (lanzamientos, festivales).
-- **Globo de marca**: el objetivo con los colores de la marca en un día normal.
+- **Zum de marca**: Zum con los colores de la marca en un día normal.
 - **Mundo privado**: para eventos o empresas, con su propio ranking.
 
 Métricas que se pueden enseñar: jugadores únicos, tiempo medio en el mapa, resultados compartidos.
@@ -17,7 +17,7 @@ Métricas que se pueden enseñar: jugadores únicos, tiempo medio en el mapa, re
 
 1. En `shared/src/themes.js`, copia `ejemplo-festival` con un `id` nuevo y cambia:
    - `name`, `sponsor` (nombre, url, mensaje).
-   - `target`: `label`, `c1` (gajos), `c2` (gajos alternos), `crown` (corona), `decoyCrown` (corona de los impostores casi iguales).
+   - `target`: `label`, `body` (cuerpo de Zum), `pupil` (pupila), `led` (luz), `decoyPupil` (pupila de los impostores casi iguales).
    - `world`: `landTint` y `waterTint` (multiplicadores RGB, cerca de 1), `townDensity` (0,05–0,3), `cloudCover` (0–0,3).
 2. Pruébalo en local: `http://localhost:5173/?tema=tu-id`.
 3. Despliega (`npm run deploy`).

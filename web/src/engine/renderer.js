@@ -1,7 +1,7 @@
 // Renderizador WebGL2 del mundo. Todo el relieve se calcula en el shader con
 // coordenadas de precisión arbitraria: la CPU pasa, por octava, la parte entera
 // y la fraccionaria de la cámara; la GPU solo suma un desplazamiento pequeño.
-import { OCTAVES as NO, FREQ, LATTICE_OFFSET, WORLD_METERS as WM, hexToRgb } from '@otea/shared';
+import { OCTAVES as NO, FREQ, LATTICE_OFFSET, WORLD_METERS as WM, hexToRgb } from '@zumbo/shared';
 import fragSrc from './world.frag.glsl?raw';
 
 const VERT = `#version 300 es
@@ -38,8 +38,8 @@ export function createRenderer(canvas, world) {
   gl.uniform1fv(U.uFq, new Float32Array(FREQ));
   gl.uniform1ui(U.uSeed, world.seed);
   gl.uniform2i(U.uTgtCell, world.targetCell[0], world.targetCell[1]);
-  gl.uniform3fv(U.uT1, hexToRgb(t.c1)); gl.uniform3fv(U.uT2, hexToRgb(t.c2)); gl.uniform3fv(U.uTR, hexToRgb(t.crown));
-  gl.uniform3fv(U.uDecoyCrown, hexToRgb(t.decoyCrown));
+  gl.uniform3fv(U.uT1, hexToRgb(t.body)); gl.uniform3fv(U.uT2, hexToRgb(t.pupil)); gl.uniform3fv(U.uTR, hexToRgb(t.led));
+  gl.uniform3fv(U.uDecoyCrown, hexToRgb(t.decoyPupil));
   gl.uniform3fv(U.uLandTint, w.landTint); gl.uniform3fv(U.uWaterTint, w.waterTint);
   gl.uniform1f(U.uTownP, w.townDensity); gl.uniform1f(U.uCloudCover, w.cloudCover);
 

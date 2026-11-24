@@ -1,7 +1,7 @@
 /* VOICE occasion: a premium daily game, calm and cinematic like a satellite app
-   IDEA a living satellite view of a new world every day, with one pink balloon to spot from above
-   PICTURE the full-screen WebGL world; the logo is the balloon seen from above, the thing you hunt
-   COLOUR the planet's own blues and greens, dark glass instruments, balloon pink #ff3d8b and crown yellow #ffd23f
+   IDEA a living satellite view of a new world every day, with one tiny pink drone (Zum) hidden in it
+   PICTURE the full-screen WebGL world; the logo is Zum's camera eye, the thing you hunt
+   COLOUR the planet's own blues and greens, dark glass instruments, Zum pink #ff3d8b and light yellow #ffd23f
    TYPE Unbounded for the wordmark and big numbers + Manrope for the interface
    LAYOUT full-bleed map; brand and clock on top; postcard clue bottom-left; zoom bottom-right; scale and coordinates bottom-centre; phone keeps the same corners */
 :root{--glass:rgba(12,16,24,.62);--glass2:rgba(12,16,24,.84);--line:rgba(255,255,255,.14);--txt:#f4f6fa;--mut:#a9b2c1;--pink:#ff3d8b;--yel:#ffd23f;color-scheme:dark}
@@ -19,7 +19,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--yel);outline-of
 .top>*{pointer-events:auto}
 .brand{height:46px;display:flex;align-items:center;gap:9px;padding:0 14px 0 8px}
 .brand svg{width:32px;height:32px;flex:none}
-.brand b{font:700 21px/1 Unbounded,sans-serif;letter-spacing:-.02em}
+.brand b{font:400 19px/1 'Rubik Mono One',Unbounded,sans-serif;letter-spacing:.01em}
 .brand small{font-weight:800;font-size:12px;color:var(--mut);padding-left:2px}
 .sp{flex:1}
 .clock{height:46px;min-width:92px;display:flex;align-items:center;justify-content:center;font:700 19px/1 Unbounded,sans-serif;font-variant-numeric:tabular-nums;padding:0 14px}
@@ -52,7 +52,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--yel);outline-of
 .sheet{background:var(--glass2);-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);border:1px solid var(--line);border-radius:24px;width:min(460px,100%);padding:24px;-webkit-user-select:text;user-select:text}
 .logo{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .logo svg{width:52px;height:52px}
-.logo b{font:700 34px/1 Unbounded,sans-serif;letter-spacing:-.03em}
+.logo b{font:400 32px/1 'Rubik Mono One',Unbounded,sans-serif}
 .logo span{display:block;font-size:13px;color:var(--mut);font-weight:700;margin-top:4px}
 h1{font:700 clamp(26px,7vw,32px)/1.08 Unbounded,sans-serif;letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
 .meta{color:var(--mut);margin:0 0 16px;font-weight:700;font-size:14px}

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createWorld, elevation, balloonAt, judgeTap, hsh, gameDay, dayNumber, finalTime, cleanAlias, WORLD_METERS } from '../src/index.js';
+import { createWorld, elevation, droneAt, judgeTap, hsh, gameDay, dayNumber, finalTime, cleanAlias, WORLD_METERS } from '../src/index.js';
 
 test('el hash coincide con valores de referencia del shader', () => {
   assert.equal(hsh(0, 0, 0), hsh(0, 0, 0));
@@ -14,7 +14,7 @@ test('el mundo es determinista por fecha', () => {
   assert.notDeepEqual(a.target, c.target);
 });
 
-test('el objetivo está en tierra firme y no hay señuelo en su celda', () => {
+test('Zum está en tierra firme', () => {
   for (const iso of ['2026-11-24', '2026-12-01', '2027-01-15', '2027-06-30']) {
     const w = createWorld(iso);
     const e = elevation(w.seed, w.target.x, w.target.y);
@@ -22,20 +22,20 @@ test('el objetivo está en tierra firme y no hay señuelo en su celda', () => {
   }
 });
 
-test('tocar el objetivo de cerca gana; de lejos pide acercarse', () => {
+test('tocar a Zum de cerca gana; de lejos pide acercarse', () => {
   const w = createWorld('2026-11-24');
-  assert.equal(judgeTap(w, w.target.x, w.target.y, 0.5).kind, 'target');
-  assert.equal(judgeTap(w, w.target.x, w.target.y, 50).kind, 'tooSmall');
+  assert.equal(judgeTap(w, w.target.x, w.target.y, 0.1).kind, 'target');
+  assert.equal(judgeTap(w, w.target.x, w.target.y, 2).kind, 'tooSmall');
 });
 
-test('tocar un señuelo cuenta como impostor', () => {
+test('tocar un dron impostor penaliza', () => {
   const w = createWorld('2026-11-24');
   const [cx, cy] = w.targetCell;
   let b = null;
-  for (let r = 1; r < 6 && !b; r++) for (let j = -r; j <= r && !b; j++) for (let i = -r; i <= r && !b; i++) b = balloonAt(w.seed, cx + i, cy + j);
+  for (let r = 1; r < 6 && !b; r++) for (let j = -r; j <= r && !b; j++) for (let i = -r; i <= r && !b; i++) b = droneAt(w.seed, cx + i, cy + j);
   assert.ok(b);
-  assert.equal(judgeTap(w, b.x, b.y, 0.5).kind, 'decoy');
-  assert.equal(judgeTap(w, b.x + 500 / WORLD_METERS, b.y, 0.5).kind === 'decoy' && false, false);
+  assert.equal(judgeTap(w, b.x, b.y, 0.1).kind, 'decoy');
+  assert.equal(judgeTap(w, b.x + 50 / WORLD_METERS, b.y + 50 / WORLD_METERS, 0.1).kind, 'none');
 });
 
 test('fechas y puntuación', () => {
@@ -51,6 +51,6 @@ test('los temas cambian el mundo y conservan valores por defecto', async () => {
   const { getTheme } = await import('../src/index.js');
   const t = getTheme('ejemplo-festival'), d = getTheme('no-existe');
   assert.equal(d.id, 'default');
-  assert.equal(t.target.c1, '#ff7a1a');
+  assert.equal(t.target.body, '#ff7a1a');
   assert.notDeepEqual(createWorld('2026-11-24', t).target, createWorld('2026-11-24').target);
 });

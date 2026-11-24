@@ -6,13 +6,12 @@ uniform vec2 uRes;uniform float uScale,uZ,uMpp,uFade,uClouds;
 uniform ivec2 uOI[NO];uniform vec2 uOF[NO];uniform float uOS[NO];uniform float uFq[NO];
 uniform int uNO;uniform uint uSeed;uniform vec2 uCam;
 uniform vec4 uTgt;uniform ivec2 uTgtCell;uniform float uTgtOn;
+// uT1 cuerpo de Zum · uT2 pupila · uTR luz · uDecoyCrown pupila de los impostores casi iguales
 uniform vec3 uT1,uT2,uTR,uDecoyCrown,uLandTint,uWaterTint;uniform float uTownP,uCloudCover;
 out vec4 o;
 const float WM=400000.;
 const vec2 G16[16]=vec2[16](vec2(1,0),vec2(.92388,.38268),vec2(.70711,.70711),vec2(.38268,.92388),vec2(0,1),vec2(-.38268,.92388),vec2(-.70711,.70711),vec2(-.92388,.38268),vec2(-1,0),vec2(-.92388,-.38268),vec2(-.70711,-.70711),vec2(-.38268,-.92388),vec2(0,-1),vec2(.38268,-.92388),vec2(.70711,-.70711),vec2(.92388,-.38268));
-const vec3 C1[14]=vec3[14](vec3(1.,.24,.55),vec3(1.,.24,.55),vec3(1.,.24,.55),vec3(1.,.24,.55),vec3(.58,.3,.86),vec3(.86,.16,.14),vec3(.16,.38,.86),vec3(.13,.6,.34),vec3(1.,.5,.12),vec3(.08,.68,.68),vec3(.12,.12,.14),vec3(.86,.16,.14),vec3(.1,.15,.38),vec3(1.,.82,.2));
-const vec3 C2[14]=vec3[14](vec3(.96),vec3(.96),vec3(.96),vec3(1.,.82,.25),vec3(.96),vec3(1.,.82,.2),vec3(.96),vec3(.96),vec3(.96),vec3(.96),vec3(1.,.82,.2),vec3(.96),vec3(1.,.5,.12),vec3(.16,.38,.86));
-const vec3 CR[14]=vec3[14](vec3(1.,.82,.25),vec3(.96),vec3(.16,.38,.86),vec3(1.,.82,.25),vec3(1.,.82,.25),vec3(.86,.16,.14),vec3(.16,.38,.86),vec3(1.,.82,.2),vec3(1.,.5,.12),vec3(.96),vec3(1.,.82,.2),vec3(.96),vec3(1.,.5,.12),vec3(.16,.38,.86));
+const vec3 C1[14]=vec3[14](vec3(1.,.24,.55),vec3(1.,.24,.55),vec3(1.,.24,.55),vec3(1.,.24,.55),vec3(1.,.24,.55),vec3(.86,.16,.14),vec3(.16,.38,.86),vec3(.13,.6,.34),vec3(1.,.5,.12),vec3(.08,.68,.68),vec3(.15,.15,.18),vec3(.92,.92,.9),vec3(.58,.3,.86),vec3(1.,.82,.2));
 const vec3 CROP[6]=vec3[6](vec3(.72,.66,.45),vec3(.45,.54,.29),vec3(.36,.45,.24),vec3(.52,.44,.34),vec3(.63,.56,.42),vec3(.55,.55,.36));
 const vec3 CARC[6]=vec3[6](vec3(.92),vec3(.15),vec3(.6,.12,.1),vec3(.2,.3,.6),vec3(.55),vec3(.8,.78,.72));
 const vec3 ROOF[5]=vec3[5](vec3(.62,.34,.24),vec3(.5,.5,.51),vec3(.34,.35,.37),vec3(.7,.68,.64),vec3(.55,.3,.22));
@@ -53,28 +52,40 @@ float cloud(vec2 d,vec2 off){float v=0.,a=.5;
   for(int i=3;i<9;i++){ivec2 c;vec2 f;oc(i,d,off,c,f);v+=a*nz(c,f,uSeed+300u+uint(i)).x;a*=.52;}
   return v;}
 
-int variant(uint h){uint m=h%20u;if(m<3u)return 1;if(m<5u)return 2;if(m<7u)return 3;if(m<8u)return 4;return 5+int((h/20u)%9u);}
+int variant(uint h){uint m=h%20u;if(m<3u)return 1;if(m<5u)return 2;if(m<7u)return 3;if(m<9u)return 4;return 5+int((h/20u)%9u);}
 
-void pal(int v,out vec3 a,out vec3 b,out vec3 c){
-  if(v==0){a=uT1;b=uT2;c=uTR;}else if(v==1){a=uT1;b=uT2;c=uT2;}else if(v==2){a=uT1;b=uT2;c=uDecoyCrown;}else if(v==3){a=uT1;b=uTR;c=uTR;}else{a=C1[v];b=C2[v];c=CR[v];}}
-void balloon(inout vec3 col,vec2 p,float r,vec2 so,int v,float rot,vec3 LS){
-  vec3 K1,K2,KR;pal(v,K1,K2,KR);
-  float sd=length(p-so)/r;col*=1.-.42*(1.-smoothstep(.75,1.3,sd));
-  if(r<1.4){float rr=max(r,.55);float cv=clamp(r*r*1.4+.2,0.,1.)*(1.-smoothstep(rr*.6,rr+.9,length(p)));col=mix(col,mix(K1,K2,.35)*1.05,cv);return;}
-  float d=length(p)/r,aa=1.2/r,cov=1.-smoothstep(1.-aa,1.+aa,d);
-  if(cov<=0.)return;
-  vec2 u=p/r;float rr=min(length(u),1.);
-  float th=atan(u.y,u.x)+rot,gs=TAU/12.,fs=fract(th/gs),sg=floor(th/gs);
-  vec3 c=mod(sg,2.)<1.?K1:K2;
-  if(rr<.3)c=KR;
-  float seam=smoothstep(0.,.035,fs)*smoothstep(1.,.965,fs);
-  if(rr>=.3)c*=mix(.72,1.,seam);
-  c*=1.-.25*(1.-smoothstep(0.,.02,abs(rr-.3)));
-  vec3 n=vec3(u,sqrt(max(0.,1.-rr*rr)));
-  c*=.36+.82*max(dot(n,LS),0.);
-  c+=.28*pow(max(dot(n,normalize(LS+vec3(0,0,1))),0.),36.);
-  c*=1.-.3*smoothstep(.86,1.,rr);
-  col=mix(col,c,cov);}
+float sdSeg(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;float h=clamp(dot(pa,ba)/dot(ba,ba),0.,1.);return length(pa-ba*h);}
+float sdRBox(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
+// Variantes: 0 Zum · 1 pupila de otro color · 2 tres hélices · 3 antena · 4 luz roja · 5..13 otro cuerpo
+void dpal(int v,out vec3 body,out vec3 pup,out vec3 led,out int arms,out bool ant){
+  body=uT1;pup=uT2;led=uTR;arms=4;ant=false;
+  if(v==1)pup=uDecoyCrown;else if(v==2)arms=3;else if(v==3)ant=true;else if(v==4)led=vec3(1.,.23,.19);else if(v>=5)body=C1[v];}
+void drone(inout vec3 col,vec2 p,float r,vec2 so,int v,float rot,vec3 LS){
+  vec3 body,pup,led;int arms;bool ant;dpal(v,body,pup,led,arms,ant);
+  vec3 INK=vec3(.08,.07,.12);
+  float sd=length(p-so)/r;col*=1.-.36*(1.-smoothstep(.5,1.05,sd));
+  if(r<1.4){float rr=max(r,.55);float cv=clamp(r*r*1.4,0.,1.)*(1.-smoothstep(rr*.6,rr+.9,length(p)));col=mix(col,body,cv);return;}
+  vec2 u=p/r;if(dot(u,u)>1.3)return;
+  float aa=1.4/r,ca=cos(rot),sa=sin(rot);vec2 q=vec2(ca*u.x+sa*u.y,-sa*u.x+ca*u.y);
+  vec3 dk=body*.55;
+  for(int i=0;i<4;i++){if(i>=arms)break;
+    float a=arms==4?.785398+float(i)*1.570796:1.570796+float(i)*2.094395;vec2 c=vec2(cos(a),sin(a))*.62;
+    col=mix(col,dk,1.-smoothstep(-aa,aa,sdSeg(q,vec2(0),c)-.07));
+    float dr=length(q-c);
+    col=mix(col,mix(col,vec3(.86,.88,.92),.5),1.-smoothstep(.33-aa,.33+aa,dr));
+    col=mix(col,INK,(1.-smoothstep(0.,aa*1.5,abs(dr-.33)-.012))*.9);
+    col=mix(col,dk,1.-smoothstep(.07-aa,.07+aa,dr));}
+  if(ant){col=mix(col,INK,1.-smoothstep(-aa,aa,sdSeg(q,vec2(.2,-.2),vec2(.42,-.5))-.02));col=mix(col,vec3(1.,.82,.25),1.-smoothstep(-aa,aa,length(q-vec2(.43,-.52))-.05));}
+  float db=sdRBox(q,vec2(.36),.15);
+  col=mix(col,INK,1.-smoothstep(-aa,aa,db-.025));
+  col=mix(col,body*(1.+.2*(-u.x-u.y)),1.-smoothstep(-aa,aa,db));
+  float de=length(u);
+  col=mix(col,INK,1.-smoothstep(.235-aa,.235+aa,de));
+  col=mix(col,vec3(.97),1.-smoothstep(.21-aa,.21+aa,de));
+  col=mix(col,INK,1.-smoothstep(.145-aa,.145+aa,de));
+  col=mix(col,pup,1.-smoothstep(.06-aa,.06+aa,length(u-vec2(.015,.02))));
+  col=mix(col,vec3(1.),1.-smoothstep(.028-aa,.028+aa,length(u-vec2(-.05,-.06))));
+  col=mix(col,led*1.2,1.-smoothstep(.045-aa,.045+aa,length(q-vec2(.24,.26))));}
 
 void main(){
   vec2 d=vec2(gl_FragCoord.x-uRes.x*.5,uRes.y*.5-gl_FragCoord.y)/uScale;
@@ -210,17 +221,17 @@ void main(){
     }
     col=wc*uWaterTint;
   }
-  // balloons
-  if(mpp<45.){
-    ivec2 c;vec2 f;oc(8,d,vec2(0),c,f);float cpx=1./uOS[8];
+  // drones (Zum y sus impostores)
+  if(mpp<8.){
+    ivec2 c;vec2 f;oc(9,d,vec2(0),c,f);float cpx=1./uOS[9];
     for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){ivec2 cc=c+ivec2(x,y);if(cc==uTgtCell)continue;
-      uint b0=hsh(cc,uSeed+500u);if((b0&255u)>=77u)continue;
+      uint b0=hsh(cc,uSeed+500u);if((b0&255u)>=115u)continue;
       uint b1=hsh(cc,uSeed+501u),b2=hsh(cc,uSeed+502u);
       vec2 jp=vec2(float(b1&1023u),float((b1>>10)&1023u))/1023.*.8+.1;
       vec2 rel=(vec2(x,y)+jp-f)*cpx;
-      float rm=9.+4.*float((b2>>8)&255u)/255.,alt=40.+130.*float((b2>>16)&255u)/255.;
-      balloon(col,-rel,rm/mpp,vec2(.8)*alt/mpp,variant(b2),float(b1>>20)/4096.*TAU,LS);}
-    if(uTgtOn>0.)balloon(col,d-uTgt.xy,uTgt.z,vec2(uTgt.w),0,.7,LS);
+      float rm=1.2+.6*float((b2>>8)&255u)/255.,alt=2.+14.*float((b2>>16)&255u)/255.;
+      drone(col,-rel,rm/mpp,vec2(.8)*alt/mpp,variant(b2),float(b1>>20)/4096.*TAU,LS);}
+    if(uTgtOn>0.)drone(col,d-uTgt.xy,uTgt.z,vec2(uTgt.w),0,.35,LS);
   }
   // clouds
   float cv=uClouds*smoothstep(25.,140.,mpp);

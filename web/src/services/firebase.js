@@ -34,7 +34,7 @@ export async function createFirebaseServer(world) {
     getRun: () => call('getMyRun').then((r) => r.run || null),
     startRun: ({ alias }) => call('startRun', { alias }),
     tap: ({ x, y, mpp }) => call('tap', { x, y, mpp }),
-    useHint: () => call('useHint'),
+    useHint: ({ level = 1 } = {}) => call('useHint', { level }),
     subscribeBoard(cb) {
       const q = fs.query(fs.collection(db, 'leaderboards', world.iso, 'entries'), fs.orderBy('ms'), fs.limit(50));
       return fs.onSnapshot(q, (s) => cb(s.docs.map((d) => ({ id: d.id, me: d.id === uid, ...d.data() }))), () => cb(null));

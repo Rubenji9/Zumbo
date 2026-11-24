@@ -1,10 +1,10 @@
 import './styles.css';
-import { createWorld, getTheme, gameDay, secondsToNextWorld, PENALTY_DECOY_MS, PENALTY_HINT_MS, WORLD_METERS as WM, balloonAt, judgeTap } from '@otea/shared';
+import { createWorld, getTheme, gameDay, secondsToNextWorld, PENALTY_DECOY_MS, PENALTY_HINT_MS, MAX_HINTS, WORLD_METERS as WM, droneAt, judgeTap } from '@zumbo/shared';
 import { createRenderer } from './engine/renderer.js';
 import { createCamera, bindInput } from './engine/camera.js';
 import { resolveThemeId, createServer } from './services/index.js';
 import { $, toast, fmtTime, fmtMeters, niceScale, fmtLatLon } from './ui/dom.js';
-import { balloonSVG, logoSVG } from './ui/brand.js';
+import { droneSVG, logoSVG } from './ui/brand.js';
 import { makePostcard, PW } from './ui/postcards.js';
 import { introSheet, resultSheet, rankingSheet, postcardSheet, closeSheet, sheetOpen, renderBoard } from './ui/sheets.js';
 
@@ -18,8 +18,8 @@ async function boot() {
   const world = createWorld(iso, theme);
   const T = theme.target;
   $('#loadLogo').innerHTML = logoSVG(T);
-  $('#brand').innerHTML = logoSVG(T) + '<b>otea</b><small>#' + world.day + '</small>';
-  $('#tgt').innerHTML = balloonSVG(T.c1, T.c2, T.crown) + '<span></span>';
+  $('#brand').innerHTML = logoSVG(T) + '<b>zumbo</b><small>#' + world.day + '</small>';
+  $('#tgt').innerHTML = droneSVG({ body: T.body, pupil: T.pupil, led: T.led }) + '<span></span>';
   $('#tgt span').textContent = T.label;
   $('#zone').textContent = 'Zona: ' + world.zone;
   if (theme.sponsor) { const s = $('#sponsor'); s.hidden = false; s.textContent = 'Mundo patrocinado por '; const a = document.createElement('a'); a.href = theme.sponsor.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = theme.sponsor.name; s.append(a); }
@@ -28,10 +28,12 @@ async function boot() {
   const renderer = createRenderer(cv, world);
   const server = await createServer(world);
   const cam = createCamera();
+  if (import.meta.env.DEV) window.__zumbo = { cam, world, S: null }; // ayuda para depurar en `npm run dev`
 
   // ---------- estado de la partida ----------
   const S = { phase: 'intro', startedAt: 0, fails: 0, hints: 0, result: null, caught: new Map(), alias: '' };
-  try { S.alias = localStorage.getItem('otea-alias') || ''; } catch {}
+  if (import.meta.env.DEV) window.__zumbo.S = S;
+  try { S.alias = localStorage.getItem('zumbo-alias') || ''; } catch {}
   let board = [];
   const total = () => S.result ? S.result.ms : S.phase === 'play' ? Date.now() - S.startedAt + S.fails * PENALTY_DECOY_MS + S.hints * PENALTY_HINT_MS : 0;
   server.subscribeBoard((rows) => { board = rows; renderBoard(rows, { mode: server.mode }); });
@@ -63,7 +65,7 @@ async function boot() {
     }
     if (S.result) {
       const [sx, sy] = cam.toScreen(world.target.x, world.target.y), r = Math.max(16, (world.target.r / mpp) * 1.4);
-      fctx.strokeStyle = T.c1; fctx.lineWidth = 3; fctx.setLineDash([8, 6]); fctx.beginPath(); fctx.arc(sx, sy, r, 0, Math.PI * 2); fctx.stroke(); fctx.setLineDash([]);
+      fctx.strokeStyle = T.body; fctx.lineWidth = 3; fctx.setLineDash([8, 6]); fctx.beginPath(); fctx.arc(sx, sy, r, 0, Math.PI * 2); fctx.stroke(); fctx.setLineDash([]);
     }
   }
   function hud() {
@@ -76,36 +78,47 @@ async function boot() {
   const penalty = () => { const c = $('#clock'); c.classList.add('hit'); setTimeout(() => c.classList.remove('hit'), 600); };
 
   // ---------- postales ----------
-  let cards = [], showClose = false;
+  let cards = [], shown = 0;
+  const CARD_TITLES = ['Postal del día', 'Postal cercana', 'Postal muy cercana'];
+  const CARD_LABELS = ['45 km', '3,2 km', '300 m'];
+  const CARD_TEXTS = [
+    `Una vista de 45 km en ${world.zone}: Zum está en algún punto de esta imagen. Busca este sitio en el mapa.`,
+    'Una vista de 3,2 km: Zum está en ella.',
+    'Una vista de 300 m: Zum está en ella. Fíjate bien.',
+  ];
   function showCard() {
-    const c = cards[showClose ? 1 : 0]; if (!c) return;
+    const c = cards[shown]; if (!c) return;
     $('#pc').getContext('2d').drawImage(c, 0, 0);
-    $('#pcLab').textContent = showClose ? '3,2 km' : '45 km';
-    $('#clueT').textContent = showClose ? 'Postal cercana' : 'Postal del día';
+    $('#pcLab').textContent = CARD_LABELS[shown];
+    $('#clueT').textContent = CARD_TITLES[shown];
     const t = $('#tabs');
-    t.innerHTML = S.hints ? '<button type="button" data-b="0">1</button><button type="button" data-b="1">2</button>' : '';
-    t.querySelectorAll('button').forEach((b) => { b.classList.toggle('on', (b.dataset.b === '1') === showClose); b.onclick = () => { showClose = b.dataset.b === '1'; showCard(); }; });
+    t.innerHTML = S.hints ? Array.from({ length: S.hints + 1 }, (_, i) => `<button type="button" data-b="${i}">${i + 1}</button>`).join('') : '';
+    t.querySelectorAll('button').forEach((b) => { b.classList.toggle('on', +b.dataset.b === shown); b.onclick = () => { shown = +b.dataset.b; showCard(); }; });
   }
-  function updClue() { const b = $('#clue2'); b.disabled = S.phase !== 'play' || S.hints > 0; b.textContent = S.hints ? 'Postal cercana desbloqueada' : 'Postal más cerca · +20 s'; }
+  function updClue() {
+    const b = $('#clue2');
+    b.disabled = S.phase !== 'play' || S.hints >= MAX_HINTS;
+    b.textContent = S.hints >= MAX_HINTS ? 'Todas las postales desbloqueadas' : (S.hints ? 'Postal todavía más cerca · +20 s' : 'Postal más cerca · +20 s');
+  }
   $('#pcBtn').onclick = () => {
-    const c = cards[showClose ? 1 : 0]; if (!c) return;
-    postcardSheet(showClose ? 'Postal cercana' : 'Postal del día', showClose ? 'Una vista de 3,2 km: el globo está en ella.' : `Una vista de 45 km en ${world.zone}: el globo está en algún punto de esta imagen. Busca este sitio en el mapa.`, c.toDataURL('image/jpeg', 0.9));
+    const c = cards[shown]; if (!c) return;
+    postcardSheet(CARD_TITLES[shown], CARD_TEXTS[shown], c.toDataURL('image/jpeg', 0.9));
   };
   $('#clue2').onclick = async () => {
-    if (S.phase !== 'play' || S.hints) return;
-    S.hints = 1; penalty(); showClose = true; showCard(); updClue(); toast('Postal cercana · +20 s');
-    try { await server.useHint(); } catch (e) { console.warn(e); }
+    if (S.phase !== 'play' || S.hints >= MAX_HINTS) return;
+    S.hints++; penalty(); shown = S.hints; showCard(); updClue(); toast(CARD_TITLES[shown] + ' · +20 s');
+    try { await server.useHint({ level: S.hints }); } catch (e) { console.warn(e); }
   };
 
   // ---------- flujo de partida ----------
   const where = () => fmtLatLon(world.target.x, world.target.y, 4);
   const nextLabel = () => { const s = secondsToNextWorld(); return `Nuevo mundo en ${Math.floor(s / 3600)} h ${Math.floor((s % 3600) / 60)} min · a medianoche, hora de Madrid`; };
-  const shareText = () => { const r = S.result; return `Otea #${world.day} · ${fmtTime(r.ms)}\n${'🟥'.repeat(r.fails || 0)}${'🟨'.repeat(r.hints || 0)}${r.fails || r.hints ? '' : '🟩'}\nHe encontrado el globo. ¿Y tú? ${location.origin}`; };
+  const shareText = () => { const r = S.result; return `Zumbo #${world.day} · ${fmtTime(r.ms)}\n${'🟥'.repeat(r.fails || 0)}${'🟨'.repeat(r.hints || 0)}${r.fails || r.hints ? '' : '🟩'}\nHe pillado a Zum. ¿Y tú? ${location.origin}`; };
   function showResult(fresh) {
     S.phase = 'done'; updClue(); updClock();
     resultSheet(world, dateLabel, S.result, fresh, where(), nextLabel(), {
       onShare: async () => { try { await navigator.clipboard.writeText(shareText()); toast('Resultado copiado'); } catch { toast('No se pudo copiar'); } },
-      onExplore: () => { closeSheet(); cam.flyTo(world.target.x, world.target.y, WM / 0.35, 1400); },
+      onExplore: () => { closeSheet(); cam.flyTo(world.target.x, world.target.y, WM / 0.06, 1600); },
     });
     renderBoard(board, { mode: server.mode });
   }
@@ -115,7 +128,7 @@ async function boot() {
   }
   async function start(alias) {
     S.alias = String(alias || '').trim().slice(0, 18);
-    try { localStorage.setItem('otea-alias', S.alias); } catch {}
+    try { localStorage.setItem('zumbo-alias', S.alias); } catch {}
     const r = await server.startRun({ alias: S.alias }).catch((e) => { toast('No se pudo empezar: ' + e.message); return null; });
     if (!r) return;
     if (r.already) { S.result = r.already; showResult(false); return; }
@@ -124,8 +137,8 @@ async function boot() {
   }
   function resume(r) {
     S.phase = 'play'; S.startedAt = r.startedAt; S.fails = r.fails || 0; S.hints = r.hints || 0;
-    for (const k of r.decoys || []) { const [cx, cy] = k.split(':').map(Number); const b = balloonAt(world.seed, cx, cy); if (b) S.caught.set(k, b); }
-    updClue(); showCard(); cam.dirty = true;
+    for (const k of r.decoys || []) { const [cx, cy] = k.split(':').map(Number); const b = droneAt(world.seed, cx, cy); if (b) S.caught.set(k, b); }
+    shown = S.hints; updClue(); showCard(); cam.dirty = true;
   }
   $('#rankBtn').onclick = () => { rankingSheet(world, dateLabel, S.phase === 'intro' ? 'Volver' : 'Volver al mapa', () => (S.phase === 'intro' ? showIntro() : S.result && S.phase !== 'play' ? showResult(false) : closeSheet())); renderBoard(board, { mode: server.mode }); };
   $('#zin').onclick = () => cam.flyTo(cam.x, cam.y, cam.z * 2.5, 380);
@@ -138,21 +151,21 @@ async function boot() {
     onTap(px, py) {
       if (S.phase === 'intro' || busy) return false;
       const [x, y] = cam.toWorld(px, py), mpp = cam.mpp();
-      // Comprobación previa local: si no hay ningún globo bajo el dedo, ni se llama al servidor
+      // Comprobación previa local: si no hay ningún dron bajo el dedo, ni se llama al servidor
       // (y el doble toque sirve para hacer zoom). Si lo hay, el servidor tiene la última palabra.
       if (judgeTap(world, x, y, mpp).kind === 'none') return false;
       busy = true;
       server.tap({ x, y, mpp }).then((r) => {
         busy = false;
-        if (r.kind === 'tooSmall') toast('Acércate más para comprobar ese globo');
+        if (r.kind === 'tooSmall') toast('Acércate más para comprobar ese dron');
         else if (r.kind === 'decoy') {
-          const [cx, cy] = r.key.split(':').map(Number), b = balloonAt(world.seed, cx, cy);
+          const [cx, cy] = r.key.split(':').map(Number), b = droneAt(world.seed, cx, cy);
           if (b) S.caught.set(r.key, b);
           if (r.penalized) { S.fails = r.fails; penalty(); toast('Impostor · +5 s'); } else toast(r.practice ? 'Impostor' : 'Ese impostor ya está marcado');
           cam.dirty = true;
         } else if (r.kind === 'target') {
           if (r.result) { S.result = r.result; S.phase = 'done'; cam.dirty = true; updClock(); setTimeout(() => showResult(true), 900); }
-          else toast('Ese es el globo de hoy');
+          else toast('Ese es Zum');
         }
       }).catch((e) => { busy = false; toast('Sin conexión con el servidor'); console.warn(e); });
       return true;

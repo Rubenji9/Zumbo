@@ -4,7 +4,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { createWorld, getTheme, judgeTap, finalTime, cleanAlias, gameDay } from '@otea/shared';
+import { createWorld, getTheme, judgeTap, finalTime, cleanAlias, gameDay, MAX_HINTS } from '@zumbo/shared';
 
 initializeApp();
 setGlobalOptions({ region: 'europe-west1', maxInstances: 20 });
@@ -51,8 +51,14 @@ export const startRun = onCall(async (req) => {
 
 export const useHint = onCall(async (req) => {
   const { runRef } = check(req);
-  await runRef.update({ hints: 1 });
-  return { hints: 1 };
+  const level = Math.max(1, Math.min(MAX_HINTS, Number(req.data?.level) || 1));
+  return db.runTransaction(async (tx) => {
+    const s = await tx.get(runRef);
+    if (!s.exists || s.data().result) return { hints: s.exists ? s.data().hints : 0 };
+    const hints = Math.max(s.data().hints || 0, level);
+    tx.update(runRef, { hints });
+    return { hints };
+  });
 });
 
 export const tap = onCall(async (req) => {
@@ -63,14 +69,14 @@ export const tap = onCall(async (req) => {
   const j = judgeTap(world, x, y, mpp);
   return db.runTransaction(async (tx) => {
     const s = await tx.get(runRef);
-    if (!s.exists || s.data().result) return { kind: j.kind, practice: true, key: j.balloon?.key };
+    if (!s.exists || s.data().result) return { kind: j.kind, practice: true, key: j.drone?.key };
     const r = s.data();
     if (r.taps > 400) throw new HttpsError('resource-exhausted', 'Demasiados toques');
     tx.update(runRef, { taps: r.taps + 1 });
     if (j.kind === 'decoy') {
-      if (r.decoys.includes(j.balloon.key)) return { kind: 'decoy', key: j.balloon.key, fails: r.fails, penalized: false };
-      tx.update(runRef, { fails: r.fails + 1, decoys: [...r.decoys, j.balloon.key] });
-      return { kind: 'decoy', key: j.balloon.key, fails: r.fails + 1, penalized: true };
+      if (r.decoys.includes(j.drone.key)) return { kind: 'decoy', key: j.drone.key, fails: r.fails, penalized: false };
+      tx.update(runRef, { fails: r.fails + 1, decoys: [...r.decoys, j.drone.key] });
+      return { kind: 'decoy', key: j.drone.key, fails: r.fails + 1, penalized: true };
     }
     if (j.kind === 'target') {
       const result = { day: iso, alias: r.alias, ms: finalTime(Date.now() - r.startedAt, r.fails, r.hints), fails: r.fails, hints: r.hints, at: Date.now() };

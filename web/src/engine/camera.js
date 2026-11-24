@@ -1,6 +1,6 @@
 // Cámara: posición en el mundo [0,1]², zoom en px CSS por unidad de mundo,
 // animaciones y entrada (ratón, rueda, pellizco, teclado).
-import { WORLD_METERS as WM } from '@otea/shared';
+import { WORLD_METERS as WM } from '@zumbo/shared';
 
 export const MAX_ZOOM = WM / 0.01; // 1 cm por píxel
 

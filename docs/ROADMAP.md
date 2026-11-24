@@ -3,9 +3,10 @@
 ## Fase 1 · Validar (ahora)
 - [x] Motor de mundo satélite con zoom de 400 km a 1 cm.
 - [x] Juego diario con postales, impostores y penalizaciones.
+- [x] Marca Zumbo y personaje Zum (dron con un ojo).
 - [x] Ranking diario con validación en servidor (Firebase).
 - [x] Temas para mundos patrocinados.
-- [ ] Desplegar en un dominio propio.
+- [ ] Desplegar en Firebase (zumbo-a4359) y conectar zumbo.es.
 - [ ] Probar rendimiento en móviles reales (gama media y baja) y ajustar `HI`/`LO`.
 - [ ] Analítica básica: jugadores diarios, retención, tiempo medio, compartidos.
 - [ ] Probar con 20–50 personas y medir si vuelven solas.

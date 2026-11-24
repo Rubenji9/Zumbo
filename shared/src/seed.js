@@ -22,7 +22,7 @@ export function gameDay(date = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
 }
 
-/** Número de mundo: el 24-11-2026 es el #1. */
+/** Número de mundo: el 24-11-2026 es el #1 (Zumbo #1). */
 export function dayNumber(iso) {
   const t = (s) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
   return Math.round((t(iso) - t(EPOCH_ISO)) / 864e5) + 1;
@@ -30,7 +30,7 @@ export function dayNumber(iso) {
 
 /** Semilla del mundo de un día (y de un tema patrocinado, si lo hay). */
 export function worldSeed(iso, themeId = 'default') {
-  const base = themeId === 'default' ? 'otea-' + iso : 'otea-' + themeId + '-' + iso;
+  const base = themeId === 'default' ? 'zumbo-' + iso : 'zumbo-' + themeId + '-' + iso;
   return hashStr(base) & 0x3fffffff;
 }
 
